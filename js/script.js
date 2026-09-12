@@ -112,3 +112,20 @@ if (lightbox) {
     if (e.key === "Escape") closeLightbox();
   });
 }
+
+// ===== Skill meter fill animation (About page) =====
+const meterFills = document.querySelectorAll(".meter-fill");
+
+const meterObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("filled");
+        meterObserver.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.4 }
+);
+
+meterFills.forEach((el) => meterObserver.observe(el));
