@@ -81,7 +81,7 @@ if (filterTabs.length) {
   });
 }
 
-// ===== Lightbox =====
+// ===== Lightbox (supports single images and multi-image galleries) =====
 const lightbox = document.querySelector(".lightbox");
 
 if (lightbox) {
@@ -89,18 +89,54 @@ if (lightbox) {
   const lightboxTitle = lightbox.querySelector(".lightbox-title");
   const lightboxDesc = lightbox.querySelector(".lightbox-desc");
   const lightboxClose = lightbox.querySelector(".lightbox-close");
+  const lightboxPrev = lightbox.querySelector(".lightbox-prev");
+  const lightboxNext = lightbox.querySelector(".lightbox-next");
+  const lightboxDots = lightbox.querySelector(".lightbox-dots");
+
+  let galleryImages = [];
+  let galleryIndex = 0;
+
+  function renderGalleryImage() {
+    const src = galleryImages[galleryIndex];
+    lightboxImgWrap.innerHTML = `<img src="${src}" alt="">`;
+    const multi = galleryImages.length > 1;
+    lightboxPrev.style.display = multi ? "flex" : "none";
+    lightboxNext.style.display = multi ? "flex" : "none";
+    lightboxDots.style.display = multi ? "flex" : "none";
+    if (multi) {
+      lightboxDots.innerHTML = galleryImages
+        .map((_, i) => `<span class="dot${i === galleryIndex ? " active" : ""}"></span>`)
+        .join("");
+    }
+  }
 
   document.querySelectorAll(".portfolio-grid .work-card[data-lightbox='true']").forEach((card) => {
     card.addEventListener("click", () => {
-      const imgSrc = card.querySelector("img")?.getAttribute("src");
+      const galleryAttr = card.dataset.gallery;
       const title = card.querySelector("h4")?.textContent || "";
       const desc = card.querySelector("p")?.textContent || "";
 
-      lightboxImgWrap.innerHTML = imgSrc ? `<img src="${imgSrc}" alt="${title}">` : "";
+      galleryImages = galleryAttr
+        ? galleryAttr.split(",").map((s) => s.trim())
+        : [card.querySelector("img")?.getAttribute("src")].filter(Boolean);
+
+      galleryIndex = 0;
+      renderGalleryImage();
       lightboxTitle.textContent = title;
       lightboxDesc.textContent = desc;
       lightbox.classList.add("open");
     });
+  });
+
+  lightboxPrev.addEventListener("click", (e) => {
+    e.stopPropagation();
+    galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+    renderGalleryImage();
+  });
+  lightboxNext.addEventListener("click", (e) => {
+    e.stopPropagation();
+    galleryIndex = (galleryIndex + 1) % galleryImages.length;
+    renderGalleryImage();
   });
 
   function closeLightbox() { lightbox.classList.remove("open"); }
@@ -109,7 +145,10 @@ if (lightbox) {
     if (e.target === lightbox) closeLightbox();
   });
   document.addEventListener("keydown", (e) => {
+    if (!lightbox.classList.contains("open")) return;
     if (e.key === "Escape") closeLightbox();
+    if (e.key === "ArrowLeft") lightboxPrev.click();
+    if (e.key === "ArrowRight") lightboxNext.click();
   });
 }
 
