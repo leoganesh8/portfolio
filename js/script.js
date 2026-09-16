@@ -168,3 +168,13 @@ const meterObserver = new IntersectionObserver(
 );
 
 meterFills.forEach((el) => meterObserver.observe(el));
+
+// ===== Only one video plays at a time (mobile + desktop) =====
+const allVideos = document.querySelectorAll("video");
+allVideos.forEach((vid) => {
+  vid.addEventListener("play", () => {
+    allVideos.forEach((other) => {
+      if (other !== vid && !other.paused) other.pause();
+    });
+  });
+});
